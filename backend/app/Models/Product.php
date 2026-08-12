@@ -41,7 +41,12 @@ class Product extends Model
 
     public function suppliers()
     {
-        return $this->hasMany(ProductSupplier::class);
+        return $this->belongsToMany(
+            Supplier::class,
+            'product_suppliers',
+            'product_id',
+            'supplier_id'
+        );
     }
 
     public function stocks()

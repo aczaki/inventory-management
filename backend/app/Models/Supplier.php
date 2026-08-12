@@ -2,40 +2,39 @@
 
 namespace App\Models;
 
+use Database\Factories\SupplierFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[Fillable([
+    'code',
+    'name',
+    'email',
+    'phone',
+    'address',
+    'contact_person',
+    'status',
+])]
 class Supplier extends Model
 {
-    use HasFactory, SoftDeletes;
+    /** @use HasFactory<SupplierFactory> */
+    use HasFactory;
+    use SoftDeletes;
 
-    protected $fillable = [
-        'code',
-        'name',
-        'email',
-        'phone',
-        'address',
-        'contact_person',
-        'status',
-    ];
-
-    public function productSuppliers()
+    protected function casts(): array
     {
-        return $this->hasMany(ProductSupplier::class);
+        return [];
     }
 
     public function products()
     {
         return $this->belongsToMany(
             Product::class,
-            'product_suppliers'
-        )
-        ->withPivot([
-            'supplier_sku',
-            'last_purchase_price',
-            'is_primary',
-        ])
-        ->withTimestamps();
+            'product_suppliers',
+            'supplier_id',
+            'product_id'
+        );
     }
 }

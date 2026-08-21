@@ -35,6 +35,10 @@ class Supplier extends Model
             'product_suppliers',
             'supplier_id',
             'product_id'
-        );
+        )->withPivot([
+            'supplier_sku',
+            'last_purchase_price',
+            'is_primary',
+        ]);
     }
 }

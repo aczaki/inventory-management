@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Supplier;
 
 class Product extends Model
 {
@@ -46,7 +47,11 @@ class Product extends Model
             'product_suppliers',
             'product_id',
             'supplier_id'
-        );
+        )->withPivot([
+            'supplier_sku',
+            'last_purchase_price',
+            'is_primary',
+        ]);
     }
 
     public function stocks()

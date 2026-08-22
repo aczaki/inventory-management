@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\InventoryStock;
 
 class Warehouse extends Model
 {
@@ -20,7 +21,9 @@ class Warehouse extends Model
 
     public function inventoryStocks()
     {
-        return $this->hasMany(InventoryStock::class);
+        return $this->hasMany(
+            InventoryStock::class
+        );
     }
 
     public function transactions()

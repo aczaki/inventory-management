@@ -31,6 +31,18 @@ class StockAdjustmentRequest extends FormRequest
                 'integer',
                 'min:0',
             ],
+
+            'reference_number' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'notes' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ];
     }
 }

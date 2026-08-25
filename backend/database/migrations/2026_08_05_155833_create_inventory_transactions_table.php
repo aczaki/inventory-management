@@ -11,39 +11,54 @@ return new class extends Migration
         Schema::create('inventory_transactions', function (Blueprint $table) {
             $table->id();
 
-            $table->string('transaction_number', 50)->unique();
+            $table->foreignId('product_id')
+                ->constrained('products')
+                ->restrictOnDelete()
+                ->cascadeOnUpdate();
+
+            $table->foreignId('warehouse_id')
+                ->constrained('warehouses')
+                ->restrictOnDelete()
+                ->cascadeOnUpdate();
 
             $table->string('type', 20);
 
-            $table->foreignId('warehouse_id')
-                ->constrained()
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-
-            $table->foreignId('customer_id')
-                ->nullable()
-                ->constrained()
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
+            $table->unsignedInteger('quantity');
 
             $table->string('reference_type', 50)->nullable();
-
-            $table->string('reference_number', 100)->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
 
             $table->text('notes')->nullable();
 
-            $table->date('transaction_date');
+            $table->dateTime('transaction_date');
+
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete()
+                ->cascadeOnUpdate();
 
             $table->timestamps();
 
-            $table->index('transaction_date');
-            $table->index('type');
-            $table->index('warehouse_id');
+            $table->index(
+                ['product_id', 'warehouse_id'],
+                'inventory_transactions_product_warehouse_index'
+            );
+
+            $table->index(
+                ['type'],
+                'inventory_transactions_type_index'
+            );
+
+            $table->index(
+                ['reference_type', 'reference_id'],
+                'inventory_transactions_reference_index'
+            );
+
+            $table->index(
+                ['transaction_date'],
+                'inventory_transactions_date_index'
+            );
         });
     }
 

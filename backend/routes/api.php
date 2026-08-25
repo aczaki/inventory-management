@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\ProductSupplierController;
 use App\Http\Controllers\Api\InventoryStockController;
+use App\Http\Controllers\Api\InventoryTransactionController;
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -71,6 +72,19 @@ Route::middleware('auth:sanctum')->group(function () {
         'inventory/stocks/adjustment',
         [InventoryStockController::class, 'adjustment']
     );
+
+    // Inventory Transaction Routes
+    Route::prefix('inventory')->group(function () {
+        Route::get(
+            '/transactions',
+            [InventoryTransactionController::class, 'index']
+        );
+
+        Route::get(
+            '/transactions/{inventoryTransaction}',
+            [InventoryTransactionController::class, 'show']
+        );
+    });
 });
 
 

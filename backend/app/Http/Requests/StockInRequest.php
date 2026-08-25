@@ -32,6 +32,18 @@ class StockInRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            
+            'reference_number' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'notes' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ];
     }
 }

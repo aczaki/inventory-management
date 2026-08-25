@@ -19,7 +19,7 @@ class Customer extends Model
         'address',
     ];
 
-    public function transactions()
+    public function InventoryTransactions()
     {
         return $this->hasMany(InventoryTransaction::class);
     }

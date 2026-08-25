@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryTransaction extends Model
 {
@@ -21,27 +22,25 @@ class InventoryTransaction extends Model
         'transaction_date',
     ];
 
-    protected $casts = [
-        'transaction_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'transaction_date' => 'datetime',
+        ];
+    }
 
-    public function warehouse()
+    public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function customer()
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function items()
-    {
-        return $this->hasMany(TransactionItem::class);
     }
 }

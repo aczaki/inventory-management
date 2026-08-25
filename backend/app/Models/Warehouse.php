@@ -26,8 +26,10 @@ class Warehouse extends Model
         );
     }
 
-    public function transactions()
+    public function inventoryTransactions()
     {
-        return $this->hasMany(InventoryTransaction::class);
+        return $this->hasMany(
+            InventoryTransaction::class
+        );
     }
 }

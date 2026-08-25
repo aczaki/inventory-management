@@ -5,9 +5,15 @@ namespace App\Services;
 use App\Models\InventoryStock;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Services\InventoryTransactionService;
 
 class InventoryStockService
 {
+    public function __construct(
+        protected InventoryTransactionService $transactionService
+    ) {
+    }
+
     public function getStock(
         int $productId,
         int $warehouseId
@@ -19,63 +25,16 @@ class InventoryStockService
     }
 
     public function stockIn(
-        int $productId,
-        int $warehouseId,
-        int $quantity
+    int $productId,
+    int $warehouseId,
+    int $quantity,
+    array $transactionData = []
     ): InventoryStock {
-        if ($quantity <= 0) {
-            throw ValidationException::withMessages([
-                'quantity' => [
-                    'Quantity stock in harus lebih besar dari 0.',
-                ],
-            ]);
-        }
-
         return DB::transaction(function () use (
             $productId,
             $warehouseId,
-            $quantity
-        ) {
-            $stock = InventoryStock::query()
-                ->where('product_id', $productId)
-                ->where('warehouse_id', $warehouseId)
-                ->lockForUpdate()
-                ->first();
-
-            if ($stock) {
-                $stock->increment(
-                    'quantity',
-                    $quantity
-                );
-
-                return $stock->fresh();
-            }
-
-            return InventoryStock::create([
-                'product_id' => $productId,
-                'warehouse_id' => $warehouseId,
-                'quantity' => $quantity,
-            ]);
-        });
-    }
-
-    public function stockOut(
-        int $productId,
-        int $warehouseId,
-        int $quantity
-    ): InventoryStock {
-        if ($quantity <= 0) {
-            throw ValidationException::withMessages([
-                'quantity' => [
-                    'Quantity stock out harus lebih besar dari 0.',
-                ],
-            ]);
-        }
-
-        return DB::transaction(function () use (
-            $productId,
-            $warehouseId,
-            $quantity
+            $quantity,
+            $transactionData
         ) {
             $stock = InventoryStock::query()
                 ->where('product_id', $productId)
@@ -84,57 +43,119 @@ class InventoryStockService
                 ->first();
 
             if (!$stock) {
-                throw ValidationException::withMessages([
-                    'quantity' => [
-                        'Stock product di warehouse belum tersedia.',
-                    ],
+                $stock = InventoryStock::create([
+                    'product_id' => $productId,
+                    'warehouse_id' => $warehouseId,
+                    'quantity' => 0,
                 ]);
+            }
+
+            $stock->increment('quantity', $quantity);
+
+            $this->transactionService->create([
+                'type' => 'in',
+                'warehouse_id' => $warehouseId,
+                'customer_id' => $transactionData['customer_id'] ?? null,
+                'user_id' => $transactionData['user_id'] ?? auth()->id(),
+                'reference_type' => $transactionData['reference_type'] ?? 'stock_in',
+                'reference_number' => $transactionData['reference_number'] ?? null,
+                'notes' => $transactionData['notes'] ?? null,
+                'transaction_date' => $transactionData['transaction_date'] ?? now(),
+            ]);
+
+            return $stock->fresh();
+        });
+    }
+
+    public function stockOut(
+    int $productId,
+    int $warehouseId,
+    int $quantity,
+    array $transactionData = []
+    ): InventoryStock {
+        return DB::transaction(function () use (
+            $productId,
+            $warehouseId,
+            $quantity,
+            $transactionData
+        ) {
+            $stock = InventoryStock::query()
+                ->where('product_id', $productId)
+                ->where('warehouse_id', $warehouseId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$stock) {
+                throw new \RuntimeException(
+                    'Stock produk di warehouse tersebut belum tersedia.'
+                );
             }
 
             if ($stock->quantity < $quantity) {
-                throw ValidationException::withMessages([
-                    'quantity' => [
-                        'Stock tidak mencukupi.',
-                    ],
-                ]);
+                throw new \RuntimeException(
+                    'Stock tidak mencukupi.'
+                );
             }
 
-            $stock->decrement(
-                'quantity',
-                $quantity
-            );
+            $stock->decrement('quantity', $quantity);
+
+            $this->transactionService->create([
+                'type' => 'out',
+                'warehouse_id' => $warehouseId,
+                'customer_id' => $transactionData['customer_id'] ?? null,
+                'user_id' => $transactionData['user_id'] ?? auth()->id(),
+                'reference_type' => $transactionData['reference_type'] ?? 'stock_out',
+                'reference_number' => $transactionData['reference_number'] ?? null,
+                'notes' => $transactionData['notes'] ?? null,
+                'transaction_date' => $transactionData['transaction_date'] ?? now(),
+            ]);
 
             return $stock->fresh();
         });
     }
 
     public function adjustment(
-        int $productId,
-        int $warehouseId,
-        int $quantity
+    int $productId,
+    int $warehouseId,
+    int $quantity,
+    array $transactionData = []
     ): InventoryStock {
-        if ($quantity < 0) {
-            throw ValidationException::withMessages([
-                'quantity' => [
-                    'Quantity adjustment tidak boleh negatif.',
-                ],
-            ]);
-        }
-
         return DB::transaction(function () use (
             $productId,
             $warehouseId,
-            $quantity
+            $quantity,
+            $transactionData
         ) {
-            return InventoryStock::updateOrCreate(
-                [
+            $stock = InventoryStock::query()
+                ->where('product_id', $productId)
+                ->where('warehouse_id', $warehouseId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$stock) {
+                $stock = InventoryStock::create([
                     'product_id' => $productId,
                     'warehouse_id' => $warehouseId,
-                ],
-                [
-                    'quantity' => $quantity,
-                ]
-            );
+                    'quantity' => 0,
+                ]);
+            }
+
+            $stock->update([
+                'quantity' => $quantity,
+            ]);
+
+            $this->transactionService->create([
+                'type' => 'adjustment',
+                'warehouse_id' => $warehouseId,
+                'customer_id' => $transactionData['customer_id'] ?? null,
+                'user_id' => $transactionData['user_id'] ?? auth()->id(),
+                'reference_type' => $transactionData['reference_type'] ?? 'adjustment',
+                'reference_number' => $transactionData['reference_number'] ?? null,
+                'notes' => $transactionData['notes'] ?? null,
+                'transaction_date' => $transactionData['transaction_date'] ?? now(),
+            ]);
+
+            return $stock->fresh();
         });
     }
 }

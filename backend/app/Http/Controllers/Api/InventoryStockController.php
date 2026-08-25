@@ -15,7 +15,7 @@ use Illuminate\Http\JsonResponse;
 class InventoryStockController extends Controller
 {
     public function __construct(
-        protected InventoryStockService $service
+        protected InventoryStockService $inventoryStockService
     ) {
     }
 
@@ -40,62 +40,63 @@ class InventoryStockController extends Controller
     }
 
     public function stockIn(
-        StockInRequest $request
+    StockInRequest $request
     ): JsonResponse {
-        $stock = $this->service->stockIn(
-            $request->integer('product_id'),
-            $request->integer('warehouse_id'),
-            $request->integer('quantity')
+        $stock = $this->inventoryStockService->stockIn(
+            productId: $request->integer('product_id'),
+            warehouseId: $request->integer('warehouse_id'),
+            quantity: $request->integer('quantity'),
+            transactionData: [
+                'reference_type' => 'stock_in',
+                'reference_number' => $request->input('reference_number'),
+                'notes' => $request->input('notes'),
+            ],
         );
 
-        $stock->load([
-            'product',
-            'warehouse',
+        return response()->json([
+            'message' => 'Stock berhasil ditambahkan.',
+            'data' => new InventoryStockResource($stock),
         ]);
-
-        return ApiResponse::success(
-            InventoryStockResource::make($stock),
-            'Stock added successfully.'
-        );
     }
 
-    public function stockOut(
-        StockOutRequest $request
+   public function stockOut(
+    StockOutRequest $request
     ): JsonResponse {
-        $stock = $this->service->stockOut(
-            $request->integer('product_id'),
-            $request->integer('warehouse_id'),
-            $request->integer('quantity')
+        $stock = $this->inventoryStockService->stockOut(
+            productId: $request->integer('product_id'),
+            warehouseId: $request->integer('warehouse_id'),
+            quantity: $request->integer('quantity'),
+            transactionData: [
+                'customer_id' => $request->input('customer_id'),
+                'reference_type' => 'stock_out',
+                'reference_number' => $request->input('reference_number'),
+                'notes' => $request->input('notes'),
+            ],
         );
 
-        $stock->load([
-            'product',
-            'warehouse',
+        return response()->json([
+            'message' => 'Stock berhasil dikeluarkan.',
+            'data' => new InventoryStockResource($stock),
         ]);
-
-        return ApiResponse::success(
-            InventoryStockResource::make($stock),
-            'Stock reduced successfully.'
-        );
     }
 
     public function adjustment(
-        StockAdjustmentRequest $request
+    StockAdjustmentRequest $request
     ): JsonResponse {
-        $stock = $this->service->adjustment(
-            $request->integer('product_id'),
-            $request->integer('warehouse_id'),
-            $request->integer('quantity')
+        $stock = $this->inventoryStockService->adjustment(
+            productId: $request->integer('product_id'),
+            warehouseId: $request->integer('warehouse_id'),
+            quantity: $request->integer('quantity'),
+            transactionData: [
+                'reference_type' => 'adjustment',
+                'reference_number' => $request->input('reference_number'),
+                'notes' => $request->input('notes'),
+            ],
         );
 
-        $stock->load([
-            'product',
-            'warehouse',
+        return response()->json([
+            'message' => 'Stock berhasil disesuaikan.',
+            'data' => new InventoryStockResource($stock),
         ]);
-
-        return ApiResponse::success(
-            InventoryStockResource::make($stock),
-            'Stock adjusted successfully.'
-        );
     }
 }

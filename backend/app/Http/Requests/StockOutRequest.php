@@ -31,6 +31,24 @@ class StockOutRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+
+            'customer_id' => [
+                'nullable',
+                'integer',
+                'exists:customers,id',
+            ],
+
+            'reference_number' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'notes' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ];
     }
 }

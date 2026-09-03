@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\ProductSupplierController;
 use App\Http\Controllers\Api\InventoryStockController;
 use App\Http\Controllers\Api\InventoryTransactionController;
+use App\Http\Controllers\Api\CustomerController;
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -85,6 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
             [InventoryTransactionController::class, 'show']
         );
     });
+
+    // Customer Routes
+    Route::apiResource('customers', CustomerController::class);
 });
 
 

@@ -44,6 +44,12 @@ class StockInRequest extends FormRequest
                 'string',
                 'max:1000',
             ],
+
+            'supplier_id' => [
+                'nullable',
+                'integer',
+                'exists:suppliers,id',
+            ],
         ];
     }
 }

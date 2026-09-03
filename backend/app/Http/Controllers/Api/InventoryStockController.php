@@ -67,7 +67,7 @@ class InventoryStockController extends Controller
             warehouseId: $request->integer('warehouse_id'),
             quantity: $request->integer('quantity'),
             transactionData: [
-                'customer_id' => $request->input('customer_id'),
+                'customer_id' => $request->validated('customer_id'),
                 'reference_type' => 'stock_out',
                 'reference_number' => $request->input('reference_number'),
                 'notes' => $request->input('notes'),

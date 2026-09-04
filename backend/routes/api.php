@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SupplierController;
@@ -10,7 +12,32 @@ use App\Http\Controllers\Api\InventoryTransactionController;
 use App\Http\Controllers\Api\CustomerController;
 
 
+//Authentication Routes
+Route::post(
+    '/login',
+    [AuthController::class, 'login']
+);
+
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Authentication
+    Route::get(
+        '/me',
+        [AuthController::class, 'me']
+    );
+
+    Route::post(
+        '/logout',
+        [AuthController::class, 'logout']
+    );
+
+    // Dashboard Route
+    Route::get(
+      '/dashboard',
+      [DashboardController::class, 'index']
+    );
+
+    // Product Routes
     Route::apiResource('products', ProductController::class);
 
     Route::post(

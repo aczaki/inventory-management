@@ -20,11 +20,11 @@ function StockMovementChart({
   const data = [
     {
       name: "Stock In",
-      value: stockIn,
+      value: Number(stockIn),
     },
     {
       name: "Stock Out",
-      value: stockOut,
+      value: Number(stockOut),
     },
   ];
 

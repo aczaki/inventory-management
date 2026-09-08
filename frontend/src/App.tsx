@@ -16,6 +16,8 @@ import type { DashboardData } from "./types/dashboard";
 import StatCard from "./components/dashboard/StatCard";
 import StockMovementChart from "./components/dashboard/StockMovementChart";
 import WarehouseStockChart from "./components/dashboard/WarehouseStockChart";
+import LowStockTable from "./components/dashboard/LowStockTable";
+import RecentTransactions from "./components/dashboard/RecentTransactions";
 
 function ProtectedRoute({
   children,
@@ -305,6 +307,17 @@ function Dashboard() {
 
           <WarehouseStockChart
             data={dashboard.stock_by_warehouse}
+          />
+        </div>
+
+      {/* Low Stock Products & Recent Transactions */}
+        <div className="mt-6 grid gap-6 xl:grid-cols-2">
+          <LowStockTable
+            data={dashboard.low_stock_products}
+          />
+
+          <RecentTransactions
+            data={dashboard.recent_transactions}
           />
         </div>
     </div>

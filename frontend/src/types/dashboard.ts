@@ -39,15 +39,19 @@ export interface WarehouseStock {
 export interface RecentTransaction {
   id: number;
   transaction_number: string;
-  type: string;
+  type: "in" | "out" | "adjustment" | string;
   warehouse_id: number | null;
-  customer_id?: number | null;
-  user_id?: number | null;
-  warehouse_name?: string | null;
+  customer_id: number | null;
+  user_id: number | null;
   reference_type: string | null;
   reference_number: string | null;
-  notes?: string | null;
+  notes: string | null;
   transaction_date: string;
+  created_at?: string;
+  updated_at?: string;
+  warehouse: TransactionWarehouse | null;
+  customer: TransactionCustomer | null;
+  user: TransactionUser | null;
 }
 
 export interface DashboardData {
@@ -62,4 +66,25 @@ export interface DashboardResponse {
   success: boolean;
   message: string;
   data: DashboardData;
+}
+
+export interface TransactionWarehouse {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface TransactionCustomer {
+  id: number;
+  code: string;
+  business_name: string;
+  contact_person: string;
+  email: string;
+  phone: string;
+}
+
+export interface TransactionUser {
+  id: number;
+  name: string;
+  email: string;
 }

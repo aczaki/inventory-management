@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
+import ProductList from "./pages/Products/ProductList";
 
 import {
   clearAuth,
@@ -113,7 +114,7 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <PlaceholderPage title="Products" />
+              <ProductList />
             </DashboardLayout>
           </ProtectedRoute>
         }

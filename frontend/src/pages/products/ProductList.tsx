@@ -18,6 +18,7 @@ import {
 } from "../../services/categoryService";
 
 import ProductFormModal from "../../components/products/ProductFormModal";
+import ProductDetailModal from "../../components/products/ProductDetailModal";
 
 const formatCurrency = (
   value: number | string
@@ -76,6 +77,9 @@ function ProductList() {
 
   const [productToDelete, setProductToDelete] =
     useState<Product | null>(null);
+
+  const [detailProductId, setDetailProductId] =
+  useState<number | null>(null);
 
   const searchTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(
@@ -351,6 +355,10 @@ function ProductList() {
     async () => {
       await loadProducts(1);
     };
+
+  const handleView = (product: Product) => {
+    setDetailProductId(product.id);
+  };
 
   if (
     loading &&
@@ -745,6 +753,14 @@ function ProductList() {
                           <div className="flex justify-end gap-2">
                             <button
                               type="button"
+                              onClick={() => handleView(product)}
+                              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                            >
+                              View
+                            </button>
+                            
+                            <button
+                              type="button"
                               onClick={() =>
                                 handleEdit(
                                   product
@@ -922,6 +938,12 @@ function ProductList() {
           setSelectedProduct(null);
         }}
         onSuccess={handleFormSuccess}
+      />
+
+      <ProductDetailModal
+        open={detailProductId !== null}
+        productId={detailProductId}
+        onClose={() => setDetailProductId(null)}
       />
     </div>
   );

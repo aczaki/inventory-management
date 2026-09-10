@@ -30,6 +30,16 @@ export interface ProductDeleteResponse {
   data: null;
 }
 
+export interface ProductQueryParams {
+  search?: string;
+  category_id?: number;
+  status?: "active" | "inactive";
+  sort_by?: string;
+  sort_direction?: "asc" | "desc";
+  per_page?: number;
+  page?: number;
+}
+
 const buildProductFormData = (
   data: ProductRequest
 ): FormData => {
@@ -84,9 +94,16 @@ const buildProductFormData = (
   return formData;
 };
 
-export const getProducts = async (): Promise<ProductResponse> => {
+export const getProducts = async (
+  params?: ProductQueryParams
+): Promise<ProductResponse> => {
   const response =
-    await api.get<ProductResponse>("/products");
+    await api.get<ProductResponse>(
+      "/products",
+      {
+        params,
+      }
+    );
 
   return response.data;
 };
@@ -122,10 +139,6 @@ export const updateProduct = async (
 ): Promise<ProductDetailResponse> => {
   const formData = buildProductFormData(data);
 
-  /*
-   * Laravel supports method spoofing for multipart
-   * requests, so we send PUT through _method.
-   */
   formData.append("_method", "PUT");
 
   const response =

@@ -27,8 +27,28 @@ export interface Product {
   updated_at: string;
 }
 
+export interface ProductFormData {
+  category_id: number;
+  unit_id: number;
+  sku: string;
+  barcode: string;
+  name: string;
+  description: string;
+  default_purchase_price: number;
+  selling_price: number;
+  minimum_stock: number;
+  status: "active" | "inactive";
+  image: File | null;
+}
+
 export interface ProductResponse {
   success: boolean;
   message: string;
   data: Product[];
+}
+
+export interface ProductDetailResponse {
+  success: boolean;
+  message: string;
+  data: Product;
 }

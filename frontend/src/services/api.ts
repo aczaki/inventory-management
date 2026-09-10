@@ -4,7 +4,6 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
     Accept: "application/json",
-    "Content-Type": "application/json",
   },
 });
 
@@ -14,6 +13,17 @@ api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    /*
+     * JSON request → gunakan application/json.
+     * FormData request → jangan set Content-Type secara manual.
+     * Browser/Axios akan membuat multipart/form-data beserta boundary.
+     */
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    } else {
+      config.headers["Content-Type"] = "application/json";
     }
 
     return config;
@@ -35,4 +45,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-

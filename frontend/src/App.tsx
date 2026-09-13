@@ -8,6 +8,7 @@ import ProductList from "./pages/products/ProductList";
 import StockList from "./pages/Inventory/StockList";
 import CategoryList from "./pages/Categories/CategoryList";
 import SupplierList from "./pages/Suppliers/SupplierList";
+import CustomerList from "./pages/Customers/CustomerList";
 
 import {
   clearAuth,
@@ -150,7 +151,7 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <PlaceholderPage title="Customers" />
+              <CustomerList />
             </DashboardLayout>
           </ProtectedRoute>
         }

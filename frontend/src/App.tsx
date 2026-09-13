@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ProductList from "./pages/products/ProductList";
+import StockList from "./pages/Inventory/StockList";
+import CategoryList from "./pages/Categories/CategoryList";
 
 import {
   clearAuth,
@@ -125,7 +127,7 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <PlaceholderPage title="Categories" />
+              <CategoryList />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -169,7 +171,7 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <PlaceholderPage title="Stock" />
+              <StockList />
             </DashboardLayout>
           </ProtectedRoute>
         }

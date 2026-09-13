@@ -12,8 +12,9 @@ import {
 
 import {
   getCategories,
-  type Category,
 } from "../../services/categoryService";
+
+import type { Category } from "../../types/category";
 
 import type {
   Product,

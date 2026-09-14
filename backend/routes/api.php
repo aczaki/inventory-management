@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ProductSupplierController;
 use App\Http\Controllers\Api\InventoryStockController;
 use App\Http\Controllers\Api\InventoryTransactionController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\WarehouseController;
 
 
 //Authentication Routes
@@ -116,6 +117,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Customer Routes
     Route::apiResource('customers', CustomerController::class);
+
+    // Warehouse Routes
+    Route::apiResource('warehouses', WarehouseController::class);
+
+    Route::post(
+        'warehouses/{id}/restore',
+        [WarehouseController::class, 'restore']
+    );
 });
 
 

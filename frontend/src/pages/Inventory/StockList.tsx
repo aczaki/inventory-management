@@ -1,291 +1,139 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-
-import {
-  getInventoryStocks,
-} from "../../services/inventoryStockService";
-
-import {
-  getWarehouses,
-  type Warehouse,
-} from "../../services/warehouseService";
-
-import type {
-  InventoryStock,
-} from "../../types/inventoryStock";
-
+import { useEffect, useState } from "react";
+import { getInventoryStocks } from "../../services/inventoryStockService";
+import { getWarehouses } from "../../services/warehouseService";
+import type { InventoryStock } from "../../types/inventoryStock";
+import type { Warehouse } from "../../types/warehouse";
 import StockStatus from "../../components/inventory/StockStatus";
 
-const PER_PAGE = 10;
+const StockList = () => {
+  const [stocks, setStocks] = useState<InventoryStock[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
-function StockList() {
-  const [stocks, setStocks] =
-    useState<InventoryStock[]>([]);
+  const [search, setSearch] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
 
-  const [warehouses, setWarehouses] =
-    useState<Warehouse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingWarehouses, setLoadingWarehouses] = useState(true);
+  const [error, setError] = useState("");
 
-  const [searchInput, setSearchInput] =
-    useState("");
-
-  const [search, setSearch] =
-    useState("");
-
-  const [warehouseId, setWarehouseId] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [filterLoading, setFilterLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  const searchTimeoutRef =
-    useRef<ReturnType<typeof setTimeout> | null>(
-      null
-    );
-
-  const loadWarehouses = async () => {
+  const fetchStocks = async () => {
     try {
-      const response =
-        await getWarehouses();
+      setLoading(true);
+      setError("");
 
-      setWarehouses(response.data);
-    } catch (error) {
-      console.error(
-        "Failed to load warehouses:",
-        error
-      );
+      const data = await getInventoryStocks({
+        ...(search.trim() && {
+          search: search.trim(),
+        }),
+        ...(warehouseId && {
+          warehouse_id: Number(warehouseId),
+        }),
+      });
+
+      setStocks(data);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal mengambil data stock.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const loadStocks = async (
-    filterRequest = false
-  ) => {
+  const fetchWarehouses = async () => {
     try {
-      if (filterRequest) {
-        setFilterLoading(true);
-      } else {
-        setLoading(true);
-      }
+      setLoadingWarehouses(true);
 
-      setError("");
+      const data = await getWarehouses();
 
-      const response =
-        await getInventoryStocks({
-          search:
-            search.trim() || undefined,
-
-          warehouse_id: warehouseId
-            ? Number(warehouseId)
-            : undefined,
-        });
-
-      setStocks(response.data);
-    } catch (error: any) {
-      console.error(
-        "Failed to load inventory stocks:",
-        error
-      );
-
-      setError(
-        error?.response?.data?.message ||
-          "Gagal mengambil daftar stock."
-      );
+      setWarehouses(data);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setLoading(false);
-      setFilterLoading(false);
+      setLoadingWarehouses(false);
     }
   };
 
   useEffect(() => {
-    loadWarehouses();
-    loadStocks();
+    fetchWarehouses();
   }, []);
 
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(
-        searchTimeoutRef.current
-      );
-    }
+    const timeout = setTimeout(() => {
+      fetchStocks();
+    }, 400);
 
-    searchTimeoutRef.current =
-      setTimeout(() => {
-        setSearch(searchInput.trim());
-      }, 400);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(
-          searchTimeoutRef.current
-        );
-      }
-    };
-  }, [searchInput]);
-
-  useEffect(() => {
-    if (!loading) {
-      loadStocks(true);
-    }
+    return () => clearTimeout(timeout);
   }, [search, warehouseId]);
 
-  const handleReset = () => {
-    setSearchInput("");
+  const formatNumber = (value: number | string) => {
+    return Number(value).toLocaleString("id-ID");
+  };
+
+  const handleResetFilter = () => {
     setSearch("");
     setWarehouseId("");
   };
 
-  if (loading) {
-    return (
-      <div>
-        <div className="flex items-end justify-between">
-          <div>
-            <div className="h-8 w-24 animate-pulse rounded-md bg-slate-200" />
-
-            <div className="mt-2 h-4 w-72 animate-pulse rounded-md bg-slate-200" />
-          </div>
-
-          <div className="h-10 w-24 animate-pulse rounded-lg bg-slate-200" />
-        </div>
-
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-10 animate-pulse rounded-lg bg-slate-100" />
-
-            <div className="h-10 animate-pulse rounded-lg bg-slate-100" />
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="space-y-4">
-            {Array.from({ length: 6 }).map(
-              (_, index) => (
-                <div
-                  key={index}
-                  className="h-12 animate-pulse rounded-lg bg-slate-100"
-                />
-              )
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const hasFilter = search.trim() !== "" || warehouseId !== "";
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Stock
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Inventory Stock
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Monitor current inventory across warehouses.
+          <p className="mt-1 text-sm text-gray-500">
+            Monitor ketersediaan stock produk di setiap warehouse.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() => loadStocks(true)}
-          disabled={filterLoading}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={fetchStocks}
+          disabled={loading}
+          className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={[
-              "h-4 w-4",
-              filterLoading
-                ? "animate-spin"
-                : "",
-            ].join(" ")}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M20 11a8.1 8.1 0 0 0-14.8-4L3 10"
-            />
-
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 4v6h6"
-            />
-
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 13a8.1 8.1 0 0 0 14.8 4L21 14"
-            />
-
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 20v-6h-6"
-            />
-          </svg>
-
           Refresh
         </button>
       </div>
 
       {/* Filters */}
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_260px_auto]">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_220px_auto]">
           {/* Search */}
           <div>
             <label
               htmlFor="stock-search"
-              className="mb-2 block text-xs font-medium text-slate-500"
+              className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Search
+              Search Product
             </label>
 
             <div className="relative">
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                viewBox="0 0 24 24"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.8"
+                viewBox="0 0 24 24"
               >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="7"
-                />
-
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="m20 20-4-4"
+                  strokeWidth={2}
+                  d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"
                 />
               </svg>
 
               <input
                 id="stock-search"
                 type="text"
-                value={searchInput}
-                onChange={(event) =>
-                  setSearchInput(
-                    event.target.value
-                  )
-                }
-                placeholder="Search product or SKU..."
-                className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by SKU or product name..."
+                className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
               />
             </div>
           </div>
@@ -294,7 +142,7 @@ function StockList() {
           <div>
             <label
               htmlFor="warehouse-filter"
-              className="mb-2 block text-xs font-medium text-slate-500"
+              className="mb-1.5 block text-sm font-medium text-gray-700"
             >
               Warehouse
             </label>
@@ -302,27 +150,17 @@ function StockList() {
             <select
               id="warehouse-filter"
               value={warehouseId}
-              onChange={(event) =>
-                setWarehouseId(
-                  event.target.value
-                )
-              }
-              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+              onChange={(event) => setWarehouseId(event.target.value)}
+              disabled={loadingWarehouses}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100 disabled:cursor-not-allowed disabled:bg-gray-50"
             >
-              <option value="">
-                All Warehouses
-              </option>
+              <option value="">All Warehouses</option>
 
-              {warehouses.map(
-                (warehouse) => (
-                  <option
-                    key={warehouse.id}
-                    value={warehouse.id}
-                  >
-                    {warehouse.name}
-                  </option>
-                )
-              )}
+              {warehouses.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.code} - {warehouse.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -330,8 +168,9 @@ function StockList() {
           <div className="flex items-end">
             <button
               type="button"
-              onClick={handleReset}
-              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 md:w-auto"
+              onClick={handleResetFilter}
+              disabled={!hasFilter}
+              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 md:w-auto"
             >
               Reset
             </button>
@@ -339,154 +178,153 @@ function StockList() {
         </div>
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </div>
       )}
 
       {/* Table */}
-      <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {stocks.length === 0 ? (
-          <div className="flex min-h-72 items-center justify-center px-6 py-12">
-            <div className="text-center">
-              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-slate-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-slate-400"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 10 12 3l9 7v10H3V10Z"
-                  />
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Product
+                </th>
 
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7 21v-7h10v7"
-                  />
-                </svg>
-              </div>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  SKU
+                </th>
 
-              <p className="mt-4 text-sm font-semibold text-slate-800">
-                No stock found
-              </p>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Warehouse
+                </th>
 
-              <p className="mt-1 text-sm text-slate-400">
-                Coba ubah pencarian atau warehouse filter.
-              </p>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Stock
+                </th>
 
-              <button
-                type="button"
-                onClick={handleReset}
-                className="mt-4 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
-              >
-                Clear Filters
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px]">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/70">
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Product
-                    </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Status
+                </th>
+              </tr>
+            </thead>
 
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      SKU
-                    </th>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-10 text-center text-sm text-gray-500"
+                  >
+                    Loading stock...
+                  </td>
+                </tr>
+              ) : stocks.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-10 text-center text-sm text-gray-500"
+                  >
+                    {hasFilter
+                      ? "Tidak ada stock yang sesuai dengan filter."
+                      : "Belum ada data stock."}
+                  </td>
+                </tr>
+              ) : (
+                stocks.map((stock) => {
+                  const quantity = Number(stock.quantity);
+                  const minimumStock = Number(stock.product.minimum_stock);
 
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Warehouse
-                    </th>
+                  return (
+                    <tr
+                      key={stock.id}
+                      className="transition hover:bg-gray-50"
+                    >
+                      {/* Product */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {stock.product.image_url ? (
+                            <img
+                              src={stock.product.image_url}
+                              alt={stock.product.name}
+                              className="h-10 w-10 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-xs font-medium text-gray-500">
+                              N/A
+                            </div>
+                          )}
 
-                    <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Stock
-                    </th>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {stock.product.name}
+                            </p>
 
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
+                            <p className="text-xs text-gray-500">
+                              {stock.product.unit?.name ?? "-"}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
 
-                <tbody>
-                  {stocks.map(
-                    (stock) => (
-                      <tr
-                        key={stock.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50"
-                      >
-                        <td className="px-5 py-4">
-                          <p className="text-sm font-medium text-slate-800">
-                            {stock.product
-                              .name}
-                          </p>
-                        </td>
+                      {/* SKU */}
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                        {stock.product.sku}
+                      </td>
 
-                        <td className="px-5 py-4 text-sm text-slate-500">
-                          {stock.product.sku}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <p className="text-sm text-slate-700">
-                            {
-                              stock
-                                .warehouse
-                                .name
-                            }
+                      {/* Warehouse */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {stock.warehouse.name}
                           </p>
 
-                          <p className="mt-1 text-xs text-slate-400">
-                            {
-                              stock
-                                .warehouse
-                                .code
-                            }
+                          <p className="text-xs text-gray-500">
+                            {stock.warehouse.code}
                           </p>
-                        </td>
+                        </div>
+                      </td>
 
-                        <td className="px-5 py-4 text-right">
-                          <span className="text-sm font-semibold text-slate-800">
-                            {Number(
-                              stock.quantity
-                            ).toLocaleString(
-                              "id-ID"
-                            )}
+                      {/* Stock */}
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <div className="flex flex-col items-end">
+                          <span
+                            className={`text-sm font-semibold ${
+                              quantity <= minimumStock
+                                ? "text-red-600"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            {formatNumber(quantity)}
                           </span>
-                        </td>
 
-                        <td className="px-5 py-4">
-                          <StockStatus
-                            quantity={
-                              stock.quantity
-                            }
-                            minimumStock={
-                              stock
-                                .product
-                                .minimum_stock
-                            }
-                          />
-                        </td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                          <span className="text-xs text-gray-500">
+                            Min. {formatNumber(minimumStock)}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="whitespace-nowrap px-6 py-4 text-center">
+                        <StockStatus
+                          quantity={quantity}
+                          minimumStock={minimumStock}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default StockList;

@@ -3,28 +3,36 @@ interface StockStatusProps {
   minimumStock: number | string;
 }
 
-function StockStatus({
+const StockStatus = ({
   quantity,
   minimumStock,
-}: StockStatusProps) {
-  const stock = Number(quantity);
+}: StockStatusProps) => {
+  const currentStock = Number(quantity);
   const minimum = Number(minimumStock);
 
-  if (stock <= minimum) {
+  const isLowStock = currentStock <= minimum;
+
+  if (isLowStock) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-        Low Stock
-      </span>
+      <div className="inline-flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-red-500" />
+
+        <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600">
+          Low Stock
+        </span>
+      </div>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-      Healthy
-    </span>
+    <div className="inline-flex items-center gap-2">
+      <span className="h-2 w-2 rounded-full bg-green-500" />
+
+      <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600">
+        Healthy
+      </span>
+    </div>
   );
-}
+};
 
 export default StockStatus;

@@ -1,29 +1,58 @@
 import api from "./api";
 
-export interface Warehouse {
-  id: number;
-  code: string;
-  name: string;
-  address: string | null;
-  description: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-}
+import type {
+  Warehouse,
+  WarehouseDeleteResponse,
+  WarehouseDetailResponse,
+  WarehouseFormData,
+  WarehouseResponse,
+} from "../types/warehouse";
 
-export interface WarehouseResponse {
-  success: boolean;
-  message: string;
-  data: Warehouse[];
-}
+export const getWarehouses = async (): Promise<Warehouse[]> => {
+  const response = await api.get<WarehouseResponse>("/warehouses");
 
-export const getWarehouses =
-  async (): Promise<WarehouseResponse> => {
-    const response =
-      await api.get<WarehouseResponse>(
-        "/warehouses"
-      );
+  return response.data.data;
+};
 
-    return response.data;
-  };
+export const getWarehouse = async (
+  id: number
+): Promise<Warehouse> => {
+  const response = await api.get<WarehouseDetailResponse>(
+    `/warehouses/${id}`
+  );
+
+  return response.data.data;
+};
+
+export const createWarehouse = async (
+  data: WarehouseFormData
+): Promise<Warehouse> => {
+  const response = await api.post<WarehouseDetailResponse>(
+    "/warehouses",
+    data
+  );
+
+  return response.data.data;
+};
+
+export const updateWarehouse = async (
+  id: number,
+  data: WarehouseFormData
+): Promise<Warehouse> => {
+  const response = await api.put<WarehouseDetailResponse>(
+    `/warehouses/${id}`,
+    data
+  );
+
+  return response.data.data;
+};
+
+export const deleteWarehouse = async (
+  id: number
+): Promise<WarehouseDeleteResponse> => {
+  const response = await api.delete<WarehouseDeleteResponse>(
+    `/warehouses/${id}`
+  );
+
+  return response.data;
+};

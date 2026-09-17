@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getInventoryStocks } from "../../services/inventoryStockService";
 import { getWarehouses } from "../../services/warehouseService";
 import type { InventoryStock } from "../../types/inventoryStock";
@@ -6,6 +7,7 @@ import type { Warehouse } from "../../types/warehouse";
 import StockStatus from "../../components/inventory/StockStatus";
 
 const StockList = () => {
+  const navigate = useNavigate();
   const [stocks, setStocks] = useState<InventoryStock[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
@@ -90,14 +92,38 @@ const StockList = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchStocks}
-          disabled={loading}
-          className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Refresh
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => navigate("/inventory/stock-in")}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+
+            Stock In
+          </button>
+
+          <button
+            type="button"
+            onClick={fetchStocks}
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

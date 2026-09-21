@@ -11,6 +11,7 @@ import SupplierList from "./pages/Suppliers/SupplierList";
 import CustomerList from "./pages/Customers/CustomerList";
 import WarehouseList from "./pages/Warehouses/WarehouseList";
 import StockIn from "./pages/Inventory/StockIn";
+import StockOut from "./pages/Inventory/StockOut";
 
 import {
   clearAuth,
@@ -197,7 +198,7 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <PlaceholderPage title="Stock Out" />
+              <StockOut />
             </DashboardLayout>
           </ProtectedRoute>
         }

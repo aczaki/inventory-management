@@ -2,7 +2,6 @@ import api from "./api";
 import type {
   InventoryStock,
   InventoryStockQueryParams,
-  InventoryStockResponse,
 } from "../types/inventoryStock";
 
 export interface StockInRequest {
@@ -18,15 +17,26 @@ export interface StockInResponse {
   data: InventoryStock;
 }
 
+export interface StockOutRequest {
+  product_id: number;
+  warehouse_id: number;
+  quantity: number;
+  customer_id?: number | null;
+  reference_number?: string;
+  notes?: string;
+}
+
+export interface StockOutResponse {
+  message: string;
+  data: InventoryStock;
+}
+
 export const getInventoryStocks = async (
   params?: InventoryStockQueryParams
 ): Promise<InventoryStock[]> => {
-  const response = await api.get<InventoryStockResponse>(
-    "/inventory/stocks",
-    {
-      params,
-    }
-  );
+  const response = await api.get("/inventory/stocks", {
+    params,
+  });
 
   return response.data.data;
 };
@@ -36,6 +46,17 @@ export const stockIn = async (
 ): Promise<InventoryStock> => {
   const response = await api.post<StockInResponse>(
     "/inventory/stocks/in",
+    data
+  );
+
+  return response.data.data;
+};
+
+export const stockOut = async (
+  data: StockOutRequest
+): Promise<InventoryStock> => {
+  const response = await api.post<StockOutResponse>(
+    "/inventory/stocks/out",
     data
   );
 

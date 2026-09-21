@@ -31,6 +31,19 @@ export interface StockOutResponse {
   data: InventoryStock;
 }
 
+export interface StockAdjustmentRequest {
+  product_id: number;
+  warehouse_id: number;
+  quantity: number;
+  reference_number?: string;
+  notes?: string;
+}
+
+export interface StockAdjustmentResponse {
+  message: string;
+  data: InventoryStock;
+}
+
 export const getInventoryStocks = async (
   params?: InventoryStockQueryParams
 ): Promise<InventoryStock[]> => {
@@ -57,6 +70,17 @@ export const stockOut = async (
 ): Promise<InventoryStock> => {
   const response = await api.post<StockOutResponse>(
     "/inventory/stocks/out",
+    data
+  );
+
+  return response.data.data;
+};
+
+export const adjustment = async (
+  data: StockAdjustmentRequest
+): Promise<InventoryStock> => {
+  const response = await api.post<StockAdjustmentResponse>(
+    "/inventory/stocks/adjustment",
     data
   );
 

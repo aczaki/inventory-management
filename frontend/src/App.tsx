@@ -14,6 +14,7 @@ import StockIn from "./pages/Inventory/StockIn";
 import StockOut from "./pages/Inventory/StockOut";
 import Adjustment from "./pages/Inventory/Adjustment";
 import TransactionList from "./pages/Inventory/TransactionList";
+import ReportPage from "./pages/Reports/ReportPage";
 
 import {
   clearAuth,
@@ -233,7 +234,7 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <PlaceholderPage title="Reports" />
+              <ReportPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

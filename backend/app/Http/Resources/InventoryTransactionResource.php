@@ -30,7 +30,7 @@ class InventoryTransactionResource extends JsonResource
             'customer' => $this->whenLoaded('customer', function () {
                 return [
                     'id' => $this->customer->id,
-                    'name' => $this->customer->name,
+                    'name' => $this->customer->business_name,
                 ];
             }),
 

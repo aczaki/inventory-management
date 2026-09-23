@@ -19,6 +19,20 @@ class InventoryStockController extends Controller
     ) {
     }
 
+    public function index(
+    \Illuminate\Http\Request $request
+    ): JsonResponse {
+        $stocks = $this->inventoryStockService->getStocks(
+            search: $request->input('search'),
+            warehouseId: $request->integer('warehouse_id') ?: null,
+        );
+
+        return ApiResponse::success(
+            InventoryStockResource::collection($stocks),
+            'Stocks retrieved successfully.'
+        );
+    }
+
     public function show(
         int $product,
         int $warehouse

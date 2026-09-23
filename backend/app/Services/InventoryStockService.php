@@ -24,6 +24,29 @@ class InventoryStockService
             ->firstOrFail();
     }
 
+    public function getStocks(
+    ?string $search = null,
+    ?int $warehouseId = null
+    ) {
+        return InventoryStock::query()
+            ->with([
+                'product',
+                'warehouse',
+            ])
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('product', function ($productQuery) use ($search) {
+                    $productQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                });
+            })
+            ->when($warehouseId, function ($query) use ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId);
+            })
+            ->latest()
+            ->get();
+    }
+
     public function stockIn(
     int $productId,
     int $warehouseId,

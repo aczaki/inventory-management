@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 
 import { getWarehouses } from "../../services/warehouseService";
 import { getCustomers } from "../../services/customerService";
-import { getInventoryTransactions } from "../../services/inventoryTransactionService";
+import { getInventoryTransaction, getInventoryTransactions } from "../../services/inventoryTransactionService";
+import TransactionDetailModal from "../../components/inventory/TransactionDetailModal";
 
 import type { Warehouse } from "../../types/warehouse";
 import type { Customer } from "../../types/customer";
@@ -42,6 +43,34 @@ const TransactionList = () => {
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<InventoryTransaction | null>(null);
+  
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const [detailError, setDetailError] = useState<string | null>(null);
+
+  const handleViewTransaction = async (id: number) => {
+    try {
+        setDetailLoading(true);
+        setDetailError(null);
+        setSelectedTransaction(null);
+
+        const data = await getInventoryTransaction(id);
+
+        setSelectedTransaction(data);
+    } catch (error: any) {
+        console.error("Failed to fetch transaction detail:", error);
+
+        setDetailError(
+        error?.response?.data?.message ||
+            "Gagal mengambil detail transaksi."
+        );
+    } finally {
+        setDetailLoading(false);
+    }
+  };
+  
   const fetchTransactions = async (
     currentPage = page
   ) => {
@@ -443,6 +472,9 @@ const TransactionList = () => {
                 <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   User
                 </th>
+                <th className="px-6 py-4 text-right">
+                  Action
+                </th>
               </tr>
             </thead>
 
@@ -593,6 +625,18 @@ const TransactionList = () => {
                         {transaction.user?.name || "-"}
                       </span>
                     </td>
+                    {/* Action */}
+                    <td className="px-6 py-4 text-right">
+                    <button
+                        type="button"
+                        onClick={() =>
+                        handleViewTransaction(transaction.id)
+                        }
+                        className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                    >
+                        View
+                    </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -702,7 +746,17 @@ const TransactionList = () => {
           </div>
         )}
       </div>
+        <TransactionDetailModal
+            transaction={selectedTransaction}
+            loading={detailLoading}
+            error={detailError}
+            onClose={() => {
+                setSelectedTransaction(null);
+                setDetailError(null);
+            }}
+        />
     </div>
+    
   );
 };
 

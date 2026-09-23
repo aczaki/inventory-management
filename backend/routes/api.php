@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\InventoryStockController;
 use App\Http\Controllers\Api\InventoryTransactionController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\WarehouseController;
+use App\Http\Controllers\Api\ReportController;
 
 
 //Authentication Routes
@@ -82,6 +83,12 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // Inventory Stock Routes
+
+    Route::get(
+        'inventory/stocks',
+        [InventoryStockController::class, 'index']
+    );
+
     Route::get(
     'inventory/stocks/{product}/{warehouse}',
     [InventoryStockController::class, 'show']
@@ -125,6 +132,30 @@ Route::middleware('auth:sanctum')->group(function () {
         'warehouses/{id}/restore',
         [WarehouseController::class, 'restore']
     );
+
+    // Report Routes
+    Route::prefix('reports')->group(function () {
+        Route::get(
+            '/inventory',
+            [ReportController::class, 'inventory']
+        );
+
+        Route::get(
+            '/transactions',
+            [ReportController::class, 'transactions']
+        );
+
+        Route::get(
+            '/stock-movement',
+            [ReportController::class, 'stockMovement']
+        );
+
+        Route::get(
+            '/stock-by-warehouse',
+            [ReportController::class, 'stockByWarehouse']
+        );
+    });
+
 });
 
 

@@ -42,7 +42,7 @@ function DashboardLayout({
   }, [sidebarOpen]);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -53,7 +53,7 @@ function DashboardLayout({
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="mx-auto w-full max-w-[1600px]">
             {children}
           </div>

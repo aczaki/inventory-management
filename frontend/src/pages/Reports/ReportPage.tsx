@@ -61,6 +61,100 @@ const ReportPage = () => {
 
   const [referenceType, setReferenceType] = useState("");
 
+  const resetInventoryFilters = async () => {
+    setInventoryWarehouseId(undefined);
+    setInventoryProductId(undefined);
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [inventoryResponse, transactionResponse, movementResponse, warehouseResponse] =
+        await Promise.all([
+          getInventoryReport(),
+          getTransactionReport({
+            start_date: startDate || undefined,
+            end_date: endDate || undefined,
+            type: transactionType || undefined,
+            warehouse_id: transactionWarehouseId,
+            customer_id: transactionCustomerId,
+            reference_type: referenceType || undefined,
+          }),
+          getStockMovementReport({
+            start_date: startDate || undefined,
+            end_date: endDate || undefined,
+            warehouse_id: transactionWarehouseId,
+          }),
+          getStockByWarehouseReport(),
+        ]);
+
+      setInventory(inventoryResponse.data);
+      setTransactions(transactionResponse.data);
+      setStockMovement(movementResponse.data);
+      setStockByWarehouse(warehouseResponse.data);
+    } catch (error: any) {
+      console.error("Failed to reset inventory filters:", error);
+
+      setError(
+        error?.response?.data?.message ||
+          "Gagal mengambil data laporan."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetTransactionFilters = async () => {
+    setStartDate("");
+    setEndDate("");
+    setTransactionType("");
+    setTransactionWarehouseId(undefined);
+    setTransactionCustomerId(undefined);
+    setReferenceType("");
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [inventoryResponse, transactionResponse, movementResponse, warehouseResponse] =
+        await Promise.all([
+          getInventoryReport({
+            warehouse_id: inventoryWarehouseId,
+            product_id: inventoryProductId,
+          }),
+          getTransactionReport(),
+          getStockMovementReport(),
+          getStockByWarehouseReport(),
+        ]);
+
+      setInventory(inventoryResponse.data);
+      setTransactions(transactionResponse.data);
+      setStockMovement(movementResponse.data);
+      setStockByWarehouse(warehouseResponse.data);
+    } catch (error: any) {
+      console.error("Failed to reset transaction filters:", error);
+
+      setError(
+        error?.response?.data?.message ||
+          "Gagal mengambil data laporan."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hasInventoryFilters =
+    inventoryWarehouseId !== undefined ||
+    inventoryProductId !== undefined;
+
+  const hasTransactionFilters =
+    startDate !== "" ||
+    endDate !== "" ||
+    transactionType !== "" ||
+    transactionWarehouseId !== undefined ||
+    transactionCustomerId !== undefined ||
+    referenceType !== "";
+
   const fetchMasterData = async () => {
     try {
       const [warehouseResponse, productResponse, customerResponse] =
@@ -262,15 +356,23 @@ const ReportPage = () => {
         </button>
       </div>
       {/* Inventory Filter */}
-      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-5">
-          <h2 className="text-base font-semibold text-gray-900">
-            Inventory Filter
-          </h2>
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">
+              Inventory Filters
+            </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Filter inventory by warehouse and product.
-          </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Filter inventory berdasarkan warehouse dan product.
+            </p>
+          </div>
+
+          {hasInventoryFilters && (
+            <span className="inline-flex w-fit items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              Filter aktif
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -281,16 +383,14 @@ const ReportPage = () => {
 
             <select
               value={inventoryWarehouseId ?? ""}
-              onChange={(event) =>
+              onChange={(e) =>
                 setInventoryWarehouseId(
-                  event.target.value
-                    ? Number(event.target.value)
-                    : undefined
+                  e.target.value ? Number(e.target.value) : undefined
                 )
               }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             >
-              <option value="">All Warehouses</option>
+              <option value="">Semua warehouse</option>
 
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
@@ -307,16 +407,14 @@ const ReportPage = () => {
 
             <select
               value={inventoryProductId ?? ""}
-              onChange={(event) =>
+              onChange={(e) =>
                 setInventoryProductId(
-                  event.target.value
-                    ? Number(event.target.value)
-                    : undefined
+                  e.target.value ? Number(e.target.value) : undefined
                 )
               }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             >
-              <option value="">All Products</option>
+              <option value="">Semua product</option>
 
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
@@ -327,11 +425,21 @@ const ReportPage = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={resetInventoryFilters}
+            disabled={!hasInventoryFilters || loading}
+            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Reset
+          </button>
+
           <button
             type="button"
             onClick={fetchReports}
-            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+            disabled={loading}
+            className="rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Apply Filter
           </button>
@@ -339,18 +447,27 @@ const ReportPage = () => {
       </div>
 
       {/* Transaction Filter */}
-      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-5">
-          <h2 className="text-base font-semibold text-gray-900">
-            Transaction Filter
-          </h2>
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">
+              Transaction Filters
+            </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Filter transaction reports by period and transaction details.
-          </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Filter transaksi berdasarkan periode, tipe, warehouse, customer,
+              dan reference.
+            </p>
+          </div>
+
+          {hasTransactionFilters && (
+            <span className="inline-flex w-fit items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+              Filter aktif
+            </span>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* Start Date */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -360,8 +477,8 @@ const ReportPage = () => {
             <input
               type="date"
               value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             />
           </div>
 
@@ -374,31 +491,27 @@ const ReportPage = () => {
             <input
               type="date"
               value={endDate}
-              onChange={(event) => setEndDate(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             />
           </div>
 
           {/* Type */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Type
+              Transaction Type
             </label>
 
             <select
               value={transactionType}
-              onChange={(event) =>
+              onChange={(e) =>
                 setTransactionType(
-                  event.target.value as
-                    | "in"
-                    | "out"
-                    | "adjustment"
-                    | ""
+                  e.target.value as "in" | "out" | "adjustment" | ""
                 )
               }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             >
-              <option value="">All Types</option>
+              <option value="">Semua tipe</option>
               <option value="in">Stock In</option>
               <option value="out">Stock Out</option>
               <option value="adjustment">Adjustment</option>
@@ -413,16 +526,14 @@ const ReportPage = () => {
 
             <select
               value={transactionWarehouseId ?? ""}
-              onChange={(event) =>
+              onChange={(e) =>
                 setTransactionWarehouseId(
-                  event.target.value
-                    ? Number(event.target.value)
-                    : undefined
+                  e.target.value ? Number(e.target.value) : undefined
                 )
               }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             >
-              <option value="">All Warehouses</option>
+              <option value="">Semua warehouse</option>
 
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
@@ -440,16 +551,14 @@ const ReportPage = () => {
 
             <select
               value={transactionCustomerId ?? ""}
-              onChange={(event) =>
+              onChange={(e) =>
                 setTransactionCustomerId(
-                  event.target.value
-                    ? Number(event.target.value)
-                    : undefined
+                  e.target.value ? Number(e.target.value) : undefined
                 )
               }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             >
-              <option value="">All Customers</option>
+              <option value="">Semua customer</option>
 
               {customers.map((customer) => (
                 <option key={customer.id} value={customer.id}>
@@ -459,7 +568,7 @@ const ReportPage = () => {
             </select>
           </div>
 
-          {/* Reference Type */}
+          {/* Reference */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Reference Type
@@ -467,12 +576,10 @@ const ReportPage = () => {
 
             <select
               value={referenceType}
-              onChange={(event) =>
-                setReferenceType(event.target.value)
-              }
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+              onChange={(e) => setReferenceType(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
             >
-              <option value="">All References</option>
+              <option value="">Semua reference</option>
               <option value="purchase">Purchase</option>
               <option value="sales">Sales</option>
               <option value="adjustment">Adjustment</option>
@@ -480,16 +587,26 @@ const ReportPage = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={resetTransactionFilters}
+            disabled={!hasTransactionFilters || loading}
+            className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Reset
+          </button>
+
           <button
             type="button"
             onClick={fetchReports}
-            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+            disabled={loading}
+            className="rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Apply Filter
           </button>
         </div>
-      </div>        
+      </div>      
 
 
       {/* Stock Movement Summary */}
@@ -697,30 +814,30 @@ const ReportPage = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[950px]">
-            <thead>
+          <table className="w-full min-w-full">
+            <thead className="border-b border-gray-100 bg-gray-50/70">
               <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Transaction
                 </th>
 
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Type
                 </th>
 
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Warehouse
                 </th>
 
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Customer
                 </th>
 
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Reference
                 </th>
 
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Date
                 </th>
               </tr>
@@ -731,7 +848,7 @@ const ReportPage = () => {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-12 text-center text-sm text-gray-500"
+                    className="whitespace-nowrap px-5 py-4 text-sm text-gray-700"
                   >
                     No transaction data available.
                   </td>

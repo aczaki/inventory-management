@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
 
 function Login() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

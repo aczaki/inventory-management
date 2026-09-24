@@ -14,8 +14,9 @@ import type { Product } from "../../types/product";
 
 import {
   getCategories,
-  type Category,
 } from "../../services/categoryService";
+
+import type { Category } from "../../types/category";
 
 import ProductFormModal from "../../components/products/ProductFormModal";
 import ProductDetailModal from "../../components/products/ProductDetailModal";

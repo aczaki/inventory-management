@@ -80,26 +80,6 @@ function ProtectedRoute({
   return children;
 }
 
-function PlaceholderPage({
-  title,
-}: {
-  title: string;
-}) {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-        {title}
-      </h1>
-
-      <div className="mt-8 rounded-xl border border-slate-200 bg-white p-8">
-        <p className="text-sm text-slate-500">
-          Halaman ini akan dikembangkan pada sprint berikutnya.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   return (
     <Routes>

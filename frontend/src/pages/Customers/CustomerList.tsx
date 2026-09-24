@@ -193,44 +193,6 @@ function CustomerList() {
     }
   };
 
-  const handleFormSuccess =
-    async () => {
-      await loadCustomers(1);
-    };
-
-  if (
-    loading &&
-    customers.length === 0
-  ) {
-    return (
-      <div>
-        <div className="flex items-end justify-between">
-          <div>
-            <div className="h-8 w-36 animate-pulse rounded-md bg-slate-200" />
-
-            <div className="mt-2 h-4 w-64 animate-pulse rounded-md bg-slate-200" />
-          </div>
-
-          <div className="h-10 w-36 animate-pulse rounded-lg bg-slate-200" />
-        </div>
-
-        <div className="mt-6 h-20 animate-pulse rounded-xl border border-slate-200 bg-white" />
-
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="space-y-4">
-            {Array.from({
-              length: 5,
-            }).map((_, index) => (
-              <div
-                key={index}
-                className="h-12 animate-pulse rounded-lg bg-slate-100"
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>

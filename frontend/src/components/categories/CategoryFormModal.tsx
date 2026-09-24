@@ -1,8 +1,11 @@
 import {
-  ChangeEvent,
-  FormEvent,
   useEffect,
   useState,
+} from "react";
+
+import type {
+  ChangeEvent,
+  FormEvent,
 } from "react";
 
 import {
